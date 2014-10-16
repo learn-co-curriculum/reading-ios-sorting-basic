@@ -43,13 +43,16 @@ This will result in the following output:
 
 You'll notice that there are three arguments in an `NSSortDescriptor`:
 
-1. Key: Used for `NSDictionary` keys
+1. Key: Used for `NSDictionary` keys (so not relevant for our `NSArray` example
+   above, which is why it is `nil` there)
 2. Ascending: Whether the sort order is ascending (`YES`) or descending (`NO`)
-3. Selector: This has a good number of uses, but most frequently is used for alphabetically sorting based on local language. Figure that if you are writing a sort descriptor that sorts on letter, you'll probably want to set this. There is a version of the method without the selector argument if you want to use that though. We have used this version of the method in our next example.
+3. Selector: This has a number of uses, but most frequently is used for alphabetically sorting based on local language. Figure that if you are writing a sort descriptor that sorts on letter, you'll probably want to set this. There is a version of the method without the selector argument if you want to use that though. We have used this version of the method in our next example.
 
 Our array is then sorted using the `NSSortDescriptor` we have created. 
 
-You'll notice that the method `sortedArrayUsingDescriptors:` takes an array argument. This is because we might want to sort and sub-sort. This is more relevant in a dictionary situation. For instance, if we were to sort by name and then age. If two people had the same name, we would have implemented two sort descriptors, one to sort by age, and then one to further sort those names which are equivalent by age. Keep in mind, order of your array here does matter. The first sort descriptor will take precedence, meaning that if we have a person named Aaron and a person named Zach whose ages are 20 and 60 respectively and we sort using `@[@ageAscendingSortDescriptor,@nameAscendingSortDescriptor]`, the output will place Zach first and Aaron second.
+You'll notice that the method `sortedArrayUsingDescriptors:` takes an array argument. This is because we might want to sort and sub-sort. This is only relevant for `NSDictionary` sorting. 
+
+For instance, if we were to sort a group of people by `name` and then `age`. If two people had the same `name`, we would have implemented two sort descriptors, one to sort by `age`, and then one to further sort those who have the same `name` but different `age`. Keep in mind, the order of your array of `NSSortDescriptor`s here does matter. The first `NSSortDescriptor` will take precedence, meaning that if we have a person named Aaron and a person named Zach whose ages are 20 and 60 respectively and we sort using `@[@ageAscendingSortDescriptor,@nameAscendingSortDescriptor]`, the output will place Zach first and Aaron second.
 
 Here is an example with an NSDictionary, sorted by age.
 
