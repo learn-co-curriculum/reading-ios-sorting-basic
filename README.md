@@ -60,7 +60,7 @@ Here is an example with an NSDictionary, sorted by age.
 NSDictionary *johnDict = @{@"name":@"John",@"age":@18};
 NSDictionary *maryDict = @{@"name":@"Mary",@"age":@39};
 NSDictionary *margDict = @{@"name":@"Margaret",@"age":@24};
-NSDictionary *joshuaDict = @{@"name":@"Mary",@"age":@21};
+NSDictionary *joshuaDict = @{@"name":@"Joshua",@"age":@21};
 NSDictionary *biffDict = @{@"name":@"Biff",@"age":@21};
 NSDictionary *ezekDict = @{@"name":@"Ezekiel",@"age":@400};
     
@@ -84,7 +84,7 @@ The output of this code will result in the following output in our debug console
     },
         {
         age = 21;
-        name = Mary;
+        name = Joshua;
     },
         {
         age = 21;
@@ -112,7 +112,7 @@ First, the code:
 NSDictionary *johnDict = @{@"name":@"John",@"age":@18};
 NSDictionary *maryDict = @{@"name":@"Mary",@"age":@39};
 NSDictionary *margDict = @{@"name":@"Margaret",@"age":@24};
-NSDictionary *joshuaDict = @{@"name":@"Mary",@"age":@21};
+NSDictionary *joshuaDict = @{@"name":@"Joshua",@"age":@21};
 NSDictionary *biffDict = @{@"name":@"Biff",@"age":@21};
 NSDictionary *ezekDict = @{@"name":@"Ezekiel",@"age":@400};
     
@@ -140,7 +140,7 @@ And the output:
     },
         {
         age = 21;
-        name = Mary;
+        name = Joshua;
     },
         {
         age = 24;
