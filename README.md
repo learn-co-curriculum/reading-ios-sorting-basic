@@ -1,161 +1,291 @@
-# Sorting
+# Sorting With `NSSortDescriptor`
 
-## What Problem Are We Solving?
+## Objectives
 
-As with most data, when we present it to the user, we will want it to be shown
-in a certain order. In a contact list, we might want to show our data sorted
-alphabetically by first or last name. With a population study, we might order
-the data from the cities with the greatest populations to the least.
+1. Identify use cases for sorting data.
+2. Recognize the difficulty of hardcoding sort algorithms.
+3. Create `NSSortDescriptor` objects with the correct key paths and ascending options.
+4. Know that `@selector(caseInsensitiveCompare:)` is available when sorting strings.
+5. Utilize a sort descriptor on the data in an `NSArray` with the `sortedArrayUsingDescriptors:` method.
+6. Utilize subordinate sort descriptors on the data in an `NSArray`.
+7. Make a reversed copy of a sort descriptor with the `reversedSortDescriptor` method.
 
-There are many ways to sort data in Cocoa. In this reading, we will teach you
-the most common and simplest way to sort `NSArray` and `NSDictionary`.
+## The Prevalence Of Sorting
 
-## What is NSSortDescriptor?
+It's difficult to think of a situation when interacting with data that wouldn't benefit from some form of sorting. Sorting helps us access, understand, and analyze data quickly and efficiently. Sorting books helps us find a physical copy on the shelf. Sorting music helps us find the song stuck in our heads. Sorting receipts helps us track our spending.
 
-The most common  sorting mechanism in Cocoa is `NSSortDescriptor`. With it we can do quite a
-bit and with ease. Here is the syntax for a basic `NSSortDescriptor`.
+More importantly, sorting can help us determine when any particular data is not present. Imagine looking through one of your friends' iTunes libraries to see if they have any songs by one of your favorite (but obscure) artists; without being able to sort the artists by name, you'd have to look through their *entire* library to be certain of your disappointment in their musical taste. However, being able to sort your friend's library not only lets you display their songs by rating or play count, but it can also reveal that they have no artists between *Carbon Leaf* and *Cat Stevens*—meaning that your friend urgently requires an introduction to the obscure Irish-folk fiddle group *Casadh An tSúgáin*.
+
+### Sorting Algorithms
+
+Sorting is actually quite a lot of work. Think of the last time that you sorted some set of physical objects. Perhaps it was your personal library of books, or perhaps it was an envelope of receipts, or perhaps it was a team building exercise that required everyone to sort themselves by height or by birthday. What methodology did you use to accomplish the task? Was it efficient? Did you do it 100% correctly, or did you make mistakes?
+
+There are various approaches to the problem of sorting each with different merits and deficiencies. Whether you realized it or not, it's likely that you've implemented some of these "sort algorithms" in your daily life at some point or another. 
+
+Hardcoding them into computer programs, however, is actually complex enough that we're not even going to show you a code example of the logic (but if you're feeling adventurous, try to decipher these [sort algorithm][sort_algorithms] implementations). In Objective-C, Apple provides us with a framework class that does the heavy lifting for us!
+
+## `NSSortDescriptor`
+
+It's difficult to improve upon Apple's own summary description of this class in the [reference documentation][NSSortDescriptor_reference]:
+
+>An instance of `NSSortDescriptor` describes a basis for ordering objects by specifying the property to use to compare the objects, the method to use to compare the properties, and whether the comparison should be ascending or descending. Instances of `NSSortDescriptor` are immutable.
+
+Two or three things. That's all we have to define when making a sort descriptor.
+
+### The Example Data Set
+
+In this reading, we'll be working with a data set (an array of dictionaries) containing information (name, age, and height) on each of the fourteen adventuring heroes from J.R.R. Tolkien's *The Hobbit*. This set of sample data is sufficiently large to meaningfully apply a few different sort options, and should be inferred as being "in scope" for all of the examples throughout this reading:
 
 ```objc
+NSArray *middleEarthers = @[ @{ @"name"   : @"Bilbo"  ,
+                                @"age"    : @50       ,
+                                @"height" : @1.27     } ,
+                             @{ @"name"   : @"Thorin" ,
+                                @"age"    : @195      ,
+                                @"height" : @1.49     } ,
+                             @{ @"name"   : @"Balin"  ,
+                                @"age"    : @178      ,
+                                @"height" : @1.38     } ,
+                             @{ @"name"   : @"Dwalin" ,
+                                @"age"    : @169      ,
+                                @"height" : @1.50     } ,
+                             @{ @"name"   : @"Bifur"  ,
+                                @"age"    : @155      ,
+                                @"height" : @1.35     } ,
+                             
+                             @{ @"name"   : @"Bofur"  ,
+                                @"age"    : @155      ,
+                                @"height" : @1.45     } ,
+                             @{ @"name"   : @"Bombur" ,
+                                @"age"    : @155      ,
+                                @"height" : @1.35     } ,
+                             @{ @"name"   : @"Fíli"   ,
+                                @"age"    : @82       ,
+                                @"height" : @1.35     } ,
+                             @{ @"name"   : @"Kíli"   ,
+                                @"age"    : @77       ,
+                                @"height" : @1.43     } ,
+                             @{ @"name"   : @"Glóin"  ,
+                                @"age"    : @158      ,
+                                @"height" : @1.41     } ,
+                             
+                             @{ @"name"   : @"Óin"    ,
+                                @"age"    : @167      ,
+                                @"height" : @1.45     } ,
+                             @{ @"name"   : @"Dori"   ,
+                                @"age"    : @155      ,
+                                @"height" : @1.36     } ,
+                             @{ @"name"   : @"Ori"    ,
+                                @"age"    : @155      ,
+                                @"height" : @1.35     } ,
+                             @{ @"name"   : @"Gandalf",
+                                @"age"    : @2019     ,
+                                @"height" : @1.80     }
+                             ];
+```
+**A Note On The Data For Fellow Tolkien Nerds:** *The characters' [heights][heights] are extrapolated from the heights of the actors cast in the Peter Jackson films, while the characters' [ages][ages] are based on their descriptions from the book. For the dwarves without an explicitly stated age, they have been listed as being 155 years old—the median age of the possible range. [Gandalf's listed age][Gandalf_age] of 2,019 years is that of his physical form in Middle Earth; as a Maiar, he is some 11,000 years old, having been created before recorded history.*
 
-NSArray *testArray = @[@"John",@"Mary",@"Margaret",@"Joshua",@"Biff",@"Ezekiel" ];
+### Creating An `NSSortDescriptor` Object
+
+There are two class methods on `NSSortDescriptor` that we'll be using to define sort options. These are:
+
+* `sortDescriptorWithKey:ascending:` — the simplified two-argument creation method, and
+* `sortDescriptorWithKey:ascending:selector:` — the optional three-argument creation method.
+
+The **key path** argument takes the instructions for accessing the value by which we wish to sort. When accessing a dictionary like we have in the examples here, this is the name of the relevant key.
+
+The **ascending** argument takes a `BOOL` instruction for whether the information should be ordered from low to high (ascending, or `YES`), or from high to low (descending, or `NO`). **Note:** *When sorting strings, alphabetical order is* `ascending:YES`.
+
+The **selector** argument (optional) provides additional functionality that is quite expansive in its entirety. The primary option useful to you at this point is submitting `@selector(caseInsensitiveCompare:)` when sorting strings. This will treat uppercase and lowercase letters as equivalent, which is *not* the default.
+
+Let's create a sort descriptor that will alphabetize our adventurers by name. We'll want to submit `@"name"` as the key argument and `YES` to ascending (since we want the names sorted alphabetically). Since we're sorting strings, let's also submit the `@selector(caseInsensitiveCompare:)` to the optional `selector:` argument. We should also name our sort descriptor appropriately to remind us later of the key path and ascending option with which it was created; something like `sortByNameAsc` should do: 
+
+```objc
+NSSortDescriptor *sortByNameAsc = [NSSortDescriptor sortDescriptorWithKey:@"name"
+                                                                ascending:YES
+                                                                 selector:@selector(caseInsensitiveCompare:) ];
+```
+Great! Now we have the `sortByNameAsc` sort descriptor that we can use on any group of dictionaries that contain a key `@"name"`.
+
+### Utilizing An `NSSortDescriptor` Object
+
+Setting up the sort descriptor is only the first half of the process. The second step is to apply the sort descriptor to a data set. This can be accomplished by using the `sortedArrayUsingDescriptors:` method on `NSArray`, or the `sortUsingDescriptors:` method on `NSMutableArray`. 
+
+Since our adventurers are stored in an `NSArray`, we'll need to use `sortedArrayUsingDescriptors:` and capture its return in a new array that we'll call `alphabetizedMiddleEarthers`:
+
+```objc
+NSArray *alphabetizedMiddleEarthers = [middleEarthers sortedArrayUsingDescriptors:@[sortByNameAsc]];
     
-NSSortDescriptor *aToZDescriptor = [[NSSortDescriptor alloc] initWithKey:nil 
-ascending:YES selector:@selector(localizedStandardCompare:)];
-    
-NSArray *sortedTestArray = [testArray sortedArrayUsingDescriptors:@[aToZDescriptor]];
-    
-NSLog(@"%@",sortedTestArray);
+for (NSDictionary *character in alphabetizedMiddleEarthers) {
+    NSLog(@"%@", character[@"name"]);
+}
+```
+This will print:
 
 ```
-
-This will result in the following output:
-
-```
-2014-10-16 11:27:25.210 sortingTests[95961:1626860] (
-    Biff,
-    Ezekiel,
-    John,
-    Joshua,
-    Margaret,
-    Mary
-)
-```
-
-You'll notice that there are three arguments in an `NSSortDescriptor`:
-
-1. Key: Used for `NSDictionary` keys (so not relevant for our `NSArray` example
-   above, which is why it is `nil` there)
-2. Ascending: Whether the sort order is ascending (`YES`) or descending (`NO`)
-3. Selector: This has a number of uses, but most frequently is used for alphabetically sorting based on local language. Figure that if you are writing a sort descriptor that sorts on letter, you'll probably want to set this. There is a version of the method without the selector argument if you want to use that though. We have used this version of the method in our next example.
-
-Our array is then sorted using the `NSSortDescriptor` we have created. 
-
-You'll notice that the method `sortedArrayUsingDescriptors:` takes an array argument. This is because we might want to sort and sub-sort. This is only relevant for `NSDictionary` sorting. 
-
-For instance, if we were to sort a group of people by `name` and then `age`. If two people had the same `name`, we would have implemented two sort descriptors, one to sort by `age`, and then one to further sort those who have the same `name` but different `age`. Keep in mind, the order of your array of `NSSortDescriptor`s here does matter. The first `NSSortDescriptor` will take precedence, meaning that if we have a person named Aaron and a person named Zach whose ages are 20 and 60 respectively and we sort using `@[@ageAscendingSortDescriptor,@nameAscendingSortDescriptor]`, the output will place Zach first and Aaron second.
-
-Here is an example with an NSDictionary, sorted by age.
-
-```
-NSDictionary *johnDict = @{@"name":@"John",@"age":@18};
-NSDictionary *maryDict = @{@"name":@"Mary",@"age":@39};
-NSDictionary *margDict = @{@"name":@"Margaret",@"age":@24};
-NSDictionary *joshuaDict = @{@"name":@"Joshua",@"age":@21};
-NSDictionary *biffDict = @{@"name":@"Biff",@"age":@21};
-NSDictionary *ezekDict = @{@"name":@"Ezekiel",@"age":@400};
-    
-NSArray *ourCharacters = @[johnDict, maryDict, margDict, joshuaDict, biffDict, ezekDict];
-    
-NSSortDescriptor *youngestToOldestDescriptor = [[NSSortDescriptor alloc] initWithKey:@"age" ascending:YES];
-    
-NSArray *charactersSortedByAge = [ourCharacters sortedArrayUsingDescriptors:@[youngestToOldestDescriptor]];
-    
-NSLog(@"%@",charactersSortedByAge);
+Balin
+Bifur
+Bilbo
+Bofur
+Bombur
+Dori
+Dwalin
+Fíli
+Gandalf
+Glóin
+Kíli
+Ori
+Óin
+Thorin
 ```
 
-The output of this code will result in the following output in our debug console:
+### Adding Secondary Sort Descriptors
+
+Did you notice that `sortedArrayUsingDescriptors:` actually takes an `NSArray` as an argument? That's because sort methods can sub-sort their results according to a theoretically unlimited list of subordinate parameters. 
+
+It's like organizing your books by author and then by title; "by author" is the primary sort parameter while "by title" is the secondary sort parameter. We could further add a tertiary parameter "by edition" if we have multiple copies of the same book but from different publishing runs (called "editions"). Our three sort parameters "by author", "by title", and "by edition" could be translated into an array of sort descriptors.
+
+Let's write a new sort descriptor to sort our adventurers from tallest to shortest. We can use the two-argument creation method since we're not sorting strings. We'll want to submit `@"height"` as the key path and `NO` for ascending:
+
+```objc
+NSSortDescriptor *sortByHeightDesc = [NSSortDescriptor sortDescriptorWithKey:@"height"
+                                                                   ascending:NO];
+```
+Great! Now we have two sort descriptors that we can use together. Let's make our new `sortByHeightDesc` sort descriptor the primary one by adding it to the array of descriptors first:
+
+```objc
+NSArray *middleEarthersByHeightByName = [middleEarthers sortedArrayUsingDescriptors:@[sortByHeightDesc, sortByNameAsc] ];
+
+for (NSDictionary *character in middleEarthersByHeightByName) {
+    NSLog(@"%@ is %@ meters tall.", character[@"name"], character[@"height"]);
+}
+```
+This will print:
 
 ```
-2014-10-16 14:01:56.936 sortingTests[6152:1692016] 
-(
-        {
-        age = 18;
-        name = John;
-    },
-        {
-        age = 21;
-        name = Joshua;
-    },
-        {
-        age = 21;
-        name = Biff;
-    },
-        {
-        age = 24;
-        name = Margaret;
-    },
-        {
-        age = 39;
-        name = Mary;
-    },
-        {
-        age = 400;
-        name = Ezekiel;
-    }
-)
+Gandalf is 1.8 meters tall.
+Dwalin is 1.5 meters tall.
+Thorin is 1.49 meters tall.
+Bofur is 1.45 meters tall.
+Óin is 1.45 meters tall.
+Kíli is 1.43 meters tall.
+Glóin is 1.41 meters tall.
+Balin is 1.38 meters tall.
+Dori is 1.36 meters tall.
+Bifur is 1.35 meters tall.
+Bombur is 1.35 meters tall.
+Fíli is 1.35 meters tall.
+Ori is 1.35 meters tall.
+Bilbo is 1.27 meters tall.
 ```
-For an example of multiple sort descriptors, here is what we would get if we also sorted by age (ascending).
+Notice how Bifur, Bombur, Fíli, and Ori's names are all alphabetized since they're the same height? Our secondary sort descriptor was applied correctly.
 
-First, the code:
+#### Adding A Tertiary Sort Descriptor
+
+We can create another sort descriptor to arrange our adventures by age. Let's call it `sortByAgeDesc`:
+
+```objc
+NSSortDescriptor *sortByAgeDesc = [NSSortDescriptor sortDescriptorWithKey:@"age"
+                                                                ascending:NO];
+```
+Now we can sort our adventurers by age and then by height. Let's see what arrangement we get when we do this:
+
+```objc
+NSArray *middleEarthersByAgeByHeight = [middleEarthers sortedArrayUsingDescriptors:@[sortByAgeDesc, sortByHeightDesc]];
+
+for (NSDictionary *character in middleEarthersByAgeByHeight) {
+    NSLog(@"%@ is %@ years old and %@ meters tall.", character[@"name"], character[@"age"], character[@"height"]);
+}
+```
+This could print:
 
 ```
-NSDictionary *johnDict = @{@"name":@"John",@"age":@18};
-NSDictionary *maryDict = @{@"name":@"Mary",@"age":@39};
-NSDictionary *margDict = @{@"name":@"Margaret",@"age":@24};
-NSDictionary *joshuaDict = @{@"name":@"Joshua",@"age":@21};
-NSDictionary *biffDict = @{@"name":@"Biff",@"age":@21};
-NSDictionary *ezekDict = @{@"name":@"Ezekiel",@"age":@400};
-    
-NSArray *ourCharacters = @[johnDict, maryDict, margDict, joshuaDict, biffDict, ezekDict];
-    
-NSSortDescriptor *youngestToOldestDescriptor = [[NSSortDescriptor alloc] initWithKey:@"age" ascending:YES];
-   
-NSSortDescriptor *aToZDescriptor = [[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES];
-    
-NSArray *charactersSortedByAge = [ourCharacters sortedArrayUsingDescriptors:@[youngestToOldestDescriptor,aToZDescriptor]];
-    
-NSLog(@"%@",charactersSortedByAge);
+Gandalf is 2019 years old and 1.8 meters tall.
+Thorin is 195 years old and 1.49 meters tall.
+Balin is 178 years old and 1.38 meters tall.
+Dwalin is 169 years old and 1.5 meters tall.
+Óin is 167 years old and 1.45 meters tall.
+Glóin is 158 years old and 1.41 meters tall.
+Bofur is 155 years old and 1.45 meters tall.
+Dori is 155 years old and 1.36 meters tall.
+Bifur is 155 years old and 1.35 meters tall.
+Ori is 155 years old and 1.35 meters tall.
+Bombur is 155 years old and 1.35 meters tall.
+Fíli is 82 years old and 1.35 meters tall.
+Kíli is 77 years old and 1.43 meters tall.
+Bilbo is 50 years old and 1.27 meters tall.
 ```
+Did you notice that Bifur, Ori, and Bombur are all the same age and height, but didn't print alphabetically by name? Let's add our `sortByNameAsc` sort descriptor to the descriptors array to subordinately organize these three adventurers by name:
 
-And the output:
-```
-2014-10-16 14:15:28.736 sortingTests[14511:1711217] (
-        {
-        age = 18;
-        name = John;
-    },
-        {
-        age = 21;
-        name = Biff;
-    },
-        {
-        age = 21;
-        name = Joshua;
-    },
-        {
-        age = 24;
-        name = Margaret;
-    },
-        {
-        age = 39;
-        name = Mary;
-    },
-        {
-        age = 400;
-        name = Ezekiel;
-    }
-)
-```
-And in the above, you see, Biff is listed before Mary, whereas in the earlier example, we left it to chance.
+```objc
+NSArray *middleEarthersByAgeByHeightByName = [middleEarthers sortedArrayUsingDescriptors:@[sortByAgeDesc, sortByHeightDesc, sortByNameAsc]];
 
-And those are the basics of `NSSortDescriptor`!
+for (NSDictionary *character in middleEarthersByAgeByHeightByName) {
+    NSLog(@"%@ is %@ years old and %@ meters tall.", character[@"name"], character[@"age"], character[@"height"]);
+}
+```
+This will print:
+
+```
+Gandalf is 2019 years old and 1.8 meters tall.
+Thorin is 195 years old and 1.49 meters tall.
+Balin is 178 years old and 1.38 meters tall.
+Dwalin is 169 years old and 1.5 meters tall.
+Óin is 167 years old and 1.45 meters tall.
+Glóin is 158 years old and 1.41 meters tall.
+Bofur is 155 years old and 1.45 meters tall.
+Dori is 155 years old and 1.36 meters tall.
+Bifur is 155 years old and 1.35 meters tall.
+Bombur is 155 years old and 1.35 meters tall.
+Ori is 155 years old and 1.35 meters tall.
+Fíli is 82 years old and 1.35 meters tall.
+Kíli is 77 years old and 1.43 meters tall.
+Bilbo is 50 years old and 1.27 meters tall.
+```
+Our three equal dwarves are now subordinately arranged alphabetically by name!
+
+### Reversing Sort Descriptors
+
+The Apple documentation tells us that sort descriptors cannot be changed once they're created. But what if we just want to switch the order of the sort descriptor; do we have to create a whole new one? Well, yes, *but* we can take a shortcut by using `NSSortDescriptor`'s handy `reversedSortDescriptor` method to make a copy of the submitted sort descriptor but with the opposite `ascending:` argument from the original.
+
+Let's take our `sortByNameAsc` sort descriptor and use it to make a similar, but opposite, `sortByNameDesc` sort descriptor:
+
+```objc
+NSSortDescriptor *sortByNameDesc = [sortByNameAsc reversedSortDescriptor];
+```
+Easy enough, right? Let's apply it to our array of adventurers and print the result:
+
+```objc
+NSArray *reverseAlphabetizedMiddleEarthers = [middleEarthers sortedArrayUsingDescriptors:@[sortByNameDesc]];
+
+for (NSDictionary *character in reverseAlphabetizedMiddleEarthers) {
+    NSLog(@"%@", character[@"name"]);
+}
+```
+This will print:
+
+```
+Thorin
+Óin
+Ori
+Kíli
+Glóin
+Gandalf
+Fíli
+Dwalin
+Dori
+Bombur
+Bofur
+Bilbo
+Bifur
+Balin
+```
+Great! That's the exact opposite of sorting them alphabetically.
+
+
+[sort_algorithms]: http://www.knowstack.com/sorting-algorithms-in-objective-c/
+[NSSortDescriptor_reference]: https://developer.apple.com/library/prerelease/ios/documentation/Cocoa/Reference/Foundation/Classes/NSSortDescriptor_Class/index.html
+
+[heights]: http://24.media.tumblr.com/fe736cede58224929734a827ba260f76/tumblr_mhos2lSLs51rmwdaro1_500h.jpg
+[ages]: http://lotrproject.com/blog/2014/06/07/character-age-at-the-time-of-the-hobbit/
+[Gandalf_age]: http://scifi.stackexchange.com/questions/58952/how-old-is-gandalf
