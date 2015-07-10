@@ -9,6 +9,7 @@
 5. Utilize a sort descriptor on the data in an `NSArray` with the `sortedArrayUsingDescriptors:` method.
 6. Utilize subordinate sort descriptors on the data in an `NSArray`.
 7. Make a reversed copy of a sort descriptor with the `reversedSortDescriptor` method.
+8. Sort an array using an `NSSortDescriptor` with a `nil` key path.
 
 ## The Prevalence Of Sorting
 
@@ -282,6 +283,59 @@ Balin
 ```
 Great! That's the exact opposite of sorting them alphabetically.
 
+### Sorting An Array By Using `nil` Key Path
+
+Even though arrays don't have a key path, we can still use an `NSSortDescriptor` to bring order to the chaos. By creating a sort descriptor with `nil` submitted as the key path, we can select `ascending:YES` or `ascending:NO` and use it to sort an array *containing objects of all the same class*. Attempting to sort a mixed array will cause a crash at run time that reads out `unrecognized selector sent to instance`.
+
+Let's take for example two arrays, one with numbers, one with strings:
+
+```objc
+NSArray *numbers = @[ @34, @8, @1, @5, @2, @55, @13, @1, @21, @3 ];
+NSArray *words = @[ @"enters", @"cute", @"hills", @"dog", @"A", @"green", @"big" ];
+```
+We can create a basic sort descriptor that we'll call `sortByNilAsc`:
+
+```objc
+NSSortDescriptor *sortByNilAsc = [NSSortDescriptor sortDescriptorWithKey:nil
+                                                               ascending:YES];
+```
+And use it to sort our two arrays into ascending order:
+
+```objc
+NSArray *fibonacci = [numbers sortedArrayUsingDescriptors:@[sortByNilAsc]];
+
+NSLog(@"%@", fibonacci);
+
+NSArray *sentence = [words sortedArrayUsingDescriptors:@[sortByNilAsc]];
+
+NSLog(@"%@", sentence);
+```
+This will print:
+
+```
+(
+    1,
+    1,
+    2,
+    3,
+    5,
+    8,
+    13,
+    21,
+    34,
+    55
+)
+(
+    A,
+    big,
+    cute,
+    dog,
+    enters,
+    green,
+    hills
+)
+```
+Our `nil` key sort descriptor has revealed to us the beginning of the fibonacci sequence and an alphabetical sentence!
 
 [sort_algorithms]: http://www.knowstack.com/sorting-algorithms-in-objective-c/
 [NSSortDescriptor_reference]: https://developer.apple.com/library/prerelease/ios/documentation/Cocoa/Reference/Foundation/Classes/NSSortDescriptor_Class/index.html
