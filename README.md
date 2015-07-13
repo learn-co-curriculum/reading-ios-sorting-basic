@@ -285,9 +285,10 @@ Great! That's the exact opposite of sorting them alphabetically.
 
 ### Sorting An Array By Using `nil` Key Path
 
-Even though arrays don't have a key path, we can still use an `NSSortDescriptor` to bring order to the chaos. By creating a sort descriptor with `nil` submitted as the key path, we can select `ascending:YES` or `ascending:NO` and use it to sort an array *containing objects of all the same class*. Attempting to sort a mixed array will cause a crash at run time that reads out `unrecognized selector sent to instance`.
+For arrays that contain *all the same kind* of a basic object such as numbers or strings, we can still use an `NSSortDescriptor` to bring order to the chaos. By creating a sort descriptor with `nil` submitted as the key path, we can select `ascending:YES` or `ascending:NO`.  
+**Note:** *Attempting to sort a mixed array will cause a crash at run time that reads out* `unrecognized selector sent to instance`.
 
-Let's take for example two arrays, one with numbers, one with strings:
+Let's take for example two arrays with basic objects, one with numbers, one with strings:
 
 ```objc
 NSArray *numbers = @[ @34, @8, @1, @5, @2, @55, @13, @1, @21, @3 ];
