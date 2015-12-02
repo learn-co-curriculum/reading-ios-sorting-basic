@@ -344,3 +344,4 @@ Our `nil` key sort descriptor has revealed to us the beginning of the fibonacci 
 [heights]: http://24.media.tumblr.com/fe736cede58224929734a827ba260f76/tumblr_mhos2lSLs51rmwdaro1_500h.jpg
 [ages]: http://lotrproject.com/blog/2014/06/07/character-age-at-the-time-of-the-hobbit/
 [Gandalf_age]: http://scifi.stackexchange.com/questions/58952/how-old-is-gandalf
+<a href='https://learn.co/lessons/reading-ios-sorting-basic' data-visibility='hidden'>View this lesson on Learn.co</a>
